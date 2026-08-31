@@ -1,0 +1,38 @@
+---
+import { htmlLang, type Lang } from '../i18n/config.ts';
+import { localizePath } from '../i18n/utils.ts';
+
+interface Props {
+  /** URL locale of the page being rendered. */
+  lang: Lang;
+  title: string;
+  description?: string;
+}
+
+const { lang, title, description = 'Researcher · Engineer · Builder' } = Astro.props;
+
+// Every language version is self-canonical — the Chinese page never points
+// at the English URL and vice versa.
+const site = Astro.site ?? new URL('https://zhuangjian.space');
+const enHref = new URL(localizePath(Astro.url.pathname, 'en'), site).href;
+const zhHref = new URL(localizePath(Astro.url.pathname, 'zh'), site).href;
+const canonicalHref = lang === 'en' ? enHref : zhHref;
+---
+
+<!doctype html>
+<html lang={htmlLang[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalHref} />
+    <link rel="alternate" hreflang="en" href={enHref} />
+    <link rel="alternate" hreflang="zh-CN" href={zhHref} />
+    <link rel="alternate" hreflang="x-default" href={enHref} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

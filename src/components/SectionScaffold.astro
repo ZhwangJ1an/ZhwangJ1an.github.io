@@ -1,0 +1,30 @@
+---
+/**
+ * Minimal scaffold shell shared by every placeholder route (English and
+ * Chinese). Keeps the mirrored route files thin — real page layouts arrive
+ * with the design system in Phase 3+.
+ */
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LanguageSwitch from './LanguageSwitch.astro';
+import type { Lang } from '../i18n/config.ts';
+
+interface Props {
+  lang: Lang;
+  heading: string;
+  /** One-line scaffold note shown under the heading. */
+  note: string;
+  title: string;
+  description?: string;
+}
+
+const { lang, heading, note, title, description } = Astro.props;
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <main>
+    <h1>{heading}</h1>
+    <p>{note}</p>
+    <LanguageSwitch lang={lang} />
+  </main>
+</BaseLayout>

@@ -1,6 +1,7 @@
 ---
 import { htmlLang, type Lang } from '../i18n/config.ts';
 import { localizePath } from '../i18n/utils.ts';
+import '../styles/global.css';
 
 interface Props {
   /** URL locale of the page being rendered. */
@@ -31,8 +32,10 @@ const canonicalHref = lang === 'en' ? enHref : zhHref;
     <link rel="alternate" hreflang="en" href={enHref} />
     <link rel="alternate" hreflang="zh-CN" href={zhHref} />
     <link rel="alternate" hreflang="x-default" href={enHref} />
+    <slot name="head" />
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <slot />
   </body>
 </html>

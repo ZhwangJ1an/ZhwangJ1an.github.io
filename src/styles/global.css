@@ -1,0 +1,66 @@
+/* ==========================================================================
+   global.css — single entry point, imported once by BaseLayout.
+   Order matters: tokens → reset → typography → layout → motion, then
+   the document-level defaults below.
+   ========================================================================== */
+
+@import './tokens.css';
+@import './reset.css';
+@import './typography.css';
+@import './layout.css';
+@import './motion.css';
+
+/* ---- Document defaults ----------------------------------------------------- */
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.65;
+}
+
+/* ---- Focus: visible, precise, never removed --------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Selection: ink on paper, inverted. Quiet on purpose. -------------------- */
+
+::selection {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.section-inverse ::selection {
+  background: var(--color-inverse-text);
+  color: var(--color-inverse-bg);
+}
+
+/* ---- Skip link: the site's one utility affordance ------------------------------ */
+
+.skip-link {
+  position: absolute;
+  top: var(--space-xs);
+  left: var(--page-gutter);
+  z-index: 100;
+  padding: 0.5em 0.9em;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transform: translateY(-300%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}

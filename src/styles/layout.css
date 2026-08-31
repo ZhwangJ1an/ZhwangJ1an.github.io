@@ -1,0 +1,175 @@
+/* ==========================================================================
+   layout.css — containers, editorial grid, section rhythm, structure
+   built from hairlines. The horizontal rhythm of the whole site is
+   defined here once; pages compose, they do not re-declare padding.
+   ========================================================================== */
+
+/* ---- Containers -----------------------------------------------------------
+   Three primitives: page (site frame), wide (editorial grid), reading
+   (narrow text column). Full-bleed is simply "no container". */
+
+.container {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.container-wide {
+  width: 100%;
+  max-width: var(--wide-max);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.container-reading {
+  width: 100%;
+  max-width: var(--text-max);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+/* ---- Editorial grid ---------------------------------------------------------
+   An alignment system, not a cage: columns are available, rows are not
+   mandatory, and asymmetric spans are the point. */
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* mobile default */
+  gap: var(--grid-gap);
+}
+
+.grid-12 > * {
+  grid-column: 1 / -1; /* safe default: full width unless art-directed */
+}
+
+@media (min-width: 48em) {
+  .grid-12 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+@media (min-width: 68em) {
+  .grid-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+}
+
+/* ---- Section rhythm -----------------------------------------------------------
+   Stack sections with the shared scale; storytelling breaks use xl. */
+
+.section {
+  padding-block: var(--section-space-md);
+}
+
+.section-lg {
+  padding-block: var(--section-space-lg);
+}
+
+.section-xl {
+  padding-block: var(--section-space-xl);
+}
+
+/* ---- Hairline structure ---------------------------------------------------------- */
+
+.rule {
+  border: 0;
+  border-top: var(--border-hairline);
+  margin: 0;
+}
+
+.rule-strong {
+  border: 0;
+  border-top: 1px solid var(--color-border-strong);
+  margin: 0;
+}
+
+/* ---- Inverse surface ---------------------------------------------------------------
+   Re-maps the semantic tokens locally, so every child (type, links,
+   rules, placeholders) adapts without a second stylesheet. */
+
+.section-inverse {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+
+  --color-bg: var(--color-inverse-bg);
+  --color-text: var(--color-inverse-text);
+  --color-text-muted: var(--color-inverse-muted);
+  --color-text-faint: var(--color-inverse-muted);
+  --color-border: #322d26;
+  --color-border-strong: #45403a;
+  --color-bg-subtle: #201c17;
+  --color-surface: #201c17;
+}
+
+/* ---- Media placeholders ---------------------------------------------------------------
+   Neutral, honest blocks for layout work. Real imagery replaces them in
+   later phases; ratios already encode the intended crops. */
+
+.media-placeholder {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: var(--color-bg-subtle);
+  border: var(--border-hairline);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-faint);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+
+:lang(zh-CN) .media-placeholder {
+  letter-spacing: 0.14em;
+  text-transform: none;
+}
+
+.media-ratio-landscape { aspect-ratio: 3 / 2; }
+.media-ratio-portrait { aspect-ratio: 4 / 5; }
+.media-ratio-wide { aspect-ratio: 16 / 9; }
+.media-ratio-tall { aspect-ratio: 2 / 3; }
+
+/* Full-bleed variant: escapes the container's gutters to span the page
+   frame edge-to-edge. Deliberately NOT 100vw math — viewport units would
+   introduce scrollbar-width overflow; bleeding within the page frame is
+   also the editorially correct print-like behavior. */
+.full-bleed {
+  width: calc(100% + 2 * var(--page-gutter));
+  margin-inline: calc(-1 * var(--page-gutter));
+  max-width: none;
+}
+
+/* ---- Index list ----------------------------------------------------------------------------
+   Editorial content index: number, title, category — separated by
+   hairlines, never by cards. Used by INSIGHTS/CREATIONS/MOMENTS later. */
+
+.index-list {
+  border-top: var(--border-hairline);
+}
+
+.index-list > li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding-block: var(--space-md);
+  border-bottom: var(--border-hairline);
+}
+
+.index-list .index-number {
+  font-family: var(--font-display);
+  font-size: var(--text-meta);
+  color: var(--color-text-faint);
+  min-width: 2ch;
+}
+
+.index-list .index-category {
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+:lang(zh-CN) .index-list .index-category {
+  text-transform: none;
+  letter-spacing: 0.14em;
+}

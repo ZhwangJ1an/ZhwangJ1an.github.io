@@ -1,0 +1,59 @@
+/* ==========================================================================
+   motion.css — a small, closed motion vocabulary.
+
+   Allowed: opacity, transform, clip/mask reveals (later), subtle image
+   scale, page transitions (later). Never: scroll hijacking, smooth-scroll
+   frameworks, continuous animation, parallax, physics, 3D tilt.
+
+   Durations and easings come from tokens.css — no ad-hoc numbers.
+   ========================================================================== */
+
+/* One shared entrance pattern for later phases. Content is visible by
+   default (no-JS and reduced-motion safe); JS adds .is-revealed to run
+   the transition. Nothing here can hide content. */
+
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal[data-reveal='pending'] {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+      opacity var(--duration-slow) var(--ease-editorial),
+      transform var(--duration-slow) var(--ease-editorial);
+  }
+
+  .reveal[data-reveal='pending'].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Subtle image scale on hover for editorial media (max 1.02 — restraint). */
+.media-zoom {
+  overflow: hidden;
+}
+
+.media-zoom > * {
+  transition: transform var(--duration-slow) var(--ease-editorial);
+}
+
+.media-zoom:hover > * {
+  transform: scale(1.02);
+}
+
+/* Global reduced-motion fallback: anything that still animates gets
+   collapsed to a near-instant state; visibility of content is preserved. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

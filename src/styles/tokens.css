@@ -1,0 +1,101 @@
+/* ==========================================================================
+   tokens.css — design tokens only. No component rules in this file.
+   Identity: "Paper & Ink" — warm paper ground, near-black ink, hairline
+   structure, one restrained accent. No gradients, no glow, no glass.
+   ========================================================================== */
+
+:root {
+  /* ---- Color · light (default, the only theme) ------------------------- */
+  --color-bg: #faf8f4;            /* warm paper, never pure white */
+  --color-bg-subtle: #f1eee7;     /* alternate sections, placeholder media */
+  --color-surface: #fffefb;       /* raised neutral surface (behind imagery) */
+
+  --color-text: #1c1915;          /* warm almost-black ink */
+  --color-text-muted: #6d665e;
+  --color-text-faint: #9b948a;
+
+  --color-border: #e2ddd4;        /* hairline rules */
+  --color-border-strong: #c9c2b6;
+
+  /* Single restrained accent — annotation red, like ink corrections and
+     PIV vector overlays. Used for links, selected states, data marks. */
+  --color-accent: #b2452c;
+  --color-accent-hover: #8e3420;
+  --color-accent-soft: #f3e4de;   /* faint tint for selected backgrounds */
+
+  /* Inverse — for immersive sections (CREATIONS, features, footer).
+     Applied via the .section-inverse utility in layout.css, which
+     re-maps the semantic tokens locally. NOT a site-wide dark mode. */
+  --color-inverse-bg: #171410;
+  --color-inverse-text: #f4f0e9;
+  --color-inverse-muted: #a49c90;
+
+  /* ---- Type · families -------------------------------------------------- */
+  /* Latin system stack; CJK glyphs fall through to the platform sans. */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
+  /* Editorial display: screen serif for Latin, Songti-class serif for CJK —
+     the classic print pairing, zero webfont cost. */
+  --font-display:
+    Georgia, 'Times New Roman',
+    'Songti SC', 'Noto Serif CJK SC', 'Noto Serif SC', SimSun, serif;
+  --font-mono:
+    ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas,
+    'Noto Sans Mono CJK SC', monospace;
+
+  /* ---- Type · fluid scale ---------------------------------------------- */
+  /* clamp(min, ideal + slope, max); calibrated at 390px and 1440px. */
+  --text-display-xl: clamp(3.5rem, 1.66rem + 8.57vw, 9.5rem);   /* ~60 → ~150 */
+  --text-display-lg: clamp(2.6rem, 1.54rem + 4.95vw, 6rem);     /* ~44 → ~96  */
+  --text-display-md: clamp(2rem, 1.43rem + 2.86vw, 4rem);       /* ~34 → ~64  */
+  --text-heading-xl: clamp(1.6rem, 1.38rem + 1.52vw, 2.75rem);  /* ~28 → ~44  */
+  --text-heading-lg: clamp(1.4rem, 1.22rem + 1.14vw, 2.25rem);  /* ~24 → ~36  */
+  --text-heading-md: clamp(1.2rem, 1.06rem + 0.76vw, 1.75rem);  /* ~20 → ~28  */
+  --text-body-lg: clamp(1.03rem, 0.99rem + 0.29vw, 1.25rem);    /* ~17 → ~20  */
+  --text-body: clamp(1rem, 0.94rem + 0.19vw, 1.125rem);         /* ~16 → ~18  */
+  --text-body-sm: clamp(0.875rem, 0.86rem + 0.1vw, 0.9375rem);  /* ~14 → ~15  */
+  --text-label: clamp(0.72rem, 0.7rem + 0.1vw, 0.8125rem);      /* ~12 → ~13  */
+  --text-meta: clamp(0.78rem, 0.76rem + 0.11vw, 0.875rem);      /* ~13 → ~14  */
+  --text-caption: clamp(0.75rem, 0.73rem + 0.11vw, 0.84rem);    /* ~12 → ~13.5 */
+
+  /* ---- Layout · containers ---------------------------------------------- */
+  --page-max: 110rem;             /* 1760px hard ceiling for the page frame */
+  --wide-max: 90rem;              /* 1440px wide editorial grid */
+  --content-max: 75rem;           /* 1200px standard content grid */
+  --text-max: 40rem;              /* 640px reading column */
+  /* Horizontal gutter: 22px mobile → 46px laptop → 64px ceiling. */
+  --page-gutter: clamp(1.375rem, 0.25rem + 2.9vw, 4rem);
+
+  /* ---- Layout · vertical rhythm ----------------------------------------- */
+  --space-micro: 0.5rem;          /* intra-component ticks */
+  --space-xs: 0.875rem;           /* component-internal */
+  --space-sm: 1.25rem;            /* component spacing */
+  --space-md: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  --space-lg: clamp(2.5rem, 1.9rem + 2.6vw, 4rem);
+  --section-space-sm: clamp(2.5rem, 2rem + 2.1vw, 3.75rem);   /* 40 → 60  */
+  --section-space-md: clamp(3.5rem, 2.5rem + 4.3vw, 6.5rem);  /* 56 → 104 */
+  --section-space-lg: clamp(4.5rem, 3rem + 6.4vw, 9rem);      /* 72 → 144 */
+  --section-space-xl: clamp(5.5rem, 3.5rem + 8.6vw, 11.5rem); /* 88 → 184 */
+
+  /* ---- Grid -------------------------------------------------------------- */
+  --grid-gap: clamp(1rem, 0.75rem + 1vw, 1.75rem);
+  --grid-columns: 12;             /* conceptual; 6 tablet / 4 mobile in layout.css */
+
+  /* ---- Borders ------------------------------------------------------------ */
+  --hairline-weight: 1px;
+  --border-hairline: var(--hairline-weight) solid var(--color-border);
+  /* Radius ceiling: 6px. No SaaS rounding anywhere on the site. */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-max: 6px;
+
+  /* ---- Motion -------------------------------------------------------------- */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 600ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.15, 1);
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+}

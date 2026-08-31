@@ -1,6 +1,7 @@
 ---
 import { htmlLang, type Lang } from '../i18n/config.ts';
-import { localizePath } from '../i18n/utils.ts';
+import { localizePath, t } from '../i18n/utils.ts';
+import Header from '../components/navigation/Header.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -32,10 +33,16 @@ const canonicalHref = lang === 'en' ? enHref : zhHref;
     <link rel="alternate" hreflang="en" href={enHref} />
     <link rel="alternate" hreflang="zh-CN" href={zhHref} />
     <link rel="alternate" hreflang="x-default" href={enHref} />
+    <!-- Marks JS availability before first paint: the mobile menu panel
+         only switches to the fixed overlay in the enhanced (js) state. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
     <slot name="head" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main-content">{t(lang, 'skipToContent')}</a>
+    <Header lang={lang} />
     <slot />
   </body>
 </html>

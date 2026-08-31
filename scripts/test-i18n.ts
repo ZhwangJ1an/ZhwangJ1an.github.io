@@ -20,6 +20,12 @@ import {
   localizePathWith,
 } from '../src/i18n/locale-path.ts';
 import type { Lang } from '../src/i18n/config.ts';
+import {
+  getActiveNavSection,
+  isExactNavPage,
+  isLocaleHome,
+  navItems,
+} from '../src/components/navigation/navData.ts';
 
 // Mirrors astro.config.mjs exactly (format/trailingSlash defaults included).
 // `domains` is required by Astro's function types; this project has no
@@ -139,6 +145,45 @@ for (const url of roundTripCases) {
   const roundTripped = localizePath(localizePath(url, 'zh'), 'en');
   expectEqual(roundTripped, url, `'${url}' → zh → en === '${url}'`);
 }
+
+console.log('\n# Active nav section — nested routes resolve to their section');
+const insightsItem = navItems.find((item) => item.path === 'insights');
+if (!insightsItem) throw new Error('nav data: insights item missing');
+const activeCases: Array<[string, string | undefined]> = [
+  ['/', undefined],
+  ['/about/', 'about'],
+  ['/insights/', 'insights'],
+  ['/insights/coslide/', 'insights'],
+  ['/zh/insights/', 'insights'],
+  ['/zh/insights/coslide/', 'insights'],
+  ['/zh/about/', 'about'],
+  ['/zhang/', undefined],
+  ['/foo/zh/bar/', undefined],
+];
+for (const [url, expected] of activeCases) {
+  expectEqual(
+    getActiveNavSection(url)?.path,
+    expected,
+    `getActiveNavSection('${url}') → ${expected ?? 'none'}`,
+  );
+}
+
+console.log('\n# aria-current only for exact section pages (never nested pages)');
+const exactCases: Array<[string, boolean]> = [
+  ['/insights/', true],
+  ['/zh/insights/', true],
+  ['/insights/coslide/', false],
+  ['/zh/insights/coslide/', false],
+  ['/', false],
+];
+for (const [url, expected] of exactCases) {
+  expectEqual(isExactNavPage(url, insightsItem), expected, `isExactNavPage('${url}') → ${expected}`);
+}
+
+console.log('\n# Locale home detection');
+expectEqual(isLocaleHome('/'), true, "isLocaleHome('/') → true");
+expectEqual(isLocaleHome('/zh/'), true, "isLocaleHome('/zh/') → true");
+expectEqual(isLocaleHome('/about/'), false, "isLocaleHome('/about/') → false");
 
 console.log(`\n${passed} passed, ${failed} failed\n`);
 if (failed > 0) {

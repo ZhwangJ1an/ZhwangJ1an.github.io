@@ -22,7 +22,7 @@ const { lang, heading, note, title, description } = Astro.props;
 ---
 
 <BaseLayout lang={lang} title={title} description={description}>
-  <main>
+  <main id="main-content">
     <h1>{heading}</h1>
     <p>{note}</p>
     <LanguageSwitch lang={lang} />

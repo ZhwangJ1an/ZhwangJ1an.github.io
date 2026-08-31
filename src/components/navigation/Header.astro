@@ -1,0 +1,481 @@
+---
+/**
+ * Site header — one DOM, three states:
+ *
+ *  1. Desktop (≥48em): quiet editorial bar — brand · nav row · language.
+ *  2. Mobile, JS enabled: `Menu` trigger opens the full-screen panel;
+ *     the same `<ul>` becomes the editorial index (numbers + display type).
+ *  3. Mobile, no JS: the panel renders as a plain in-flow list — every
+ *     link reachable, no dead end, trigger hidden.
+ *
+ * The panel sits BELOW the header bar (z tokens) so `JZ.` and `Close`
+ * stay visible over the open menu.
+ */
+
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import type { Lang } from '../../i18n/config.ts';
+import { t } from '../../i18n/utils.ts';
+import LanguageSwitch from '../LanguageSwitch.astro';
+import { getActiveNavSection, isExactNavPage, isLocaleHome, navItems } from './navData.ts';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const currentPath = Astro.url.pathname;
+const homeHref = getRelativeLocaleUrl(lang, '');
+const activeSection = getActiveNavSection(currentPath);
+---
+
+<header class="site-header">
+  <div class="header-bar">
+    <a class="brand" href={homeHref} aria-current={isLocaleHome(currentPath) ? 'page' : undefined}>
+      JZ.
+    </a>
+
+    <div class="mobile-panel" id="mobile-panel">
+      <nav class="site-nav" aria-label={t(lang, 'nav.label')}>
+        <ul class="nav-list">
+          {
+            navItems.map((item, index) => {
+              const isActive = activeSection?.path === item.path;
+              const exact = isExactNavPage(currentPath, item);
+              return (
+                <li style={`--i: ${index}`}>
+                  <a
+                    class:list={['nav-link', { 'is-active': isActive }]}
+                    href={getRelativeLocaleUrl(lang, item.path)}
+                    aria-current={exact ? 'page' : undefined}
+                  >
+                    <span class="nav-number" aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span class="nav-text">{t(lang, item.key)}</span>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+      <div class="panel-footer">
+        <LanguageSwitch lang={lang} />
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="header-lang">
+        <LanguageSwitch lang={lang} />
+      </div>
+      <button class="menu-trigger" type="button" aria-expanded="false" aria-controls="mobile-panel">
+        <span class="label-open">{t(lang, 'menu.open')}</span>
+        <span class="label-close">{t(lang, 'menu.close')}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Progressive enhancement only: scroll lock, Escape, focus containment,
+  // focus return, and resize cleanup. Links are real <a href> navigation.
+  function enhanceNavigation(
+    header: HTMLElement,
+    trigger: HTMLButtonElement,
+    panel: HTMLElement,
+  ): void {
+    const desktop = window.matchMedia('(min-width: 48em)');
+    let lockedScrollY = 0;
+    let scrollLocked = false;
+
+    const isOpen = (): boolean => trigger.getAttribute('aria-expanded') === 'true';
+
+    function lockScroll(): void {
+      lockedScrollY = window.scrollY;
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${lockedScrollY}px`;
+      document.body.style.width = '100%';
+      scrollLocked = true;
+    }
+
+    function unlockScroll(): void {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.paddingRight = '';
+      if (scrollLocked) {
+        window.scrollTo(0, lockedScrollY);
+      }
+      scrollLocked = false;
+    }
+
+    function openMenu(): void {
+      trigger.setAttribute('aria-expanded', 'true');
+      panel.setAttribute('data-open', '');
+      lockScroll();
+      panel.querySelector<HTMLAnchorElement>('a[href]')?.focus();
+    }
+
+    function closeMenu(returnFocus: boolean = true): void {
+      trigger.setAttribute('aria-expanded', 'false');
+      panel.removeAttribute('data-open');
+      unlockScroll();
+      if (returnFocus) {
+        trigger.focus();
+      }
+    }
+
+    trigger.addEventListener('click', () => {
+      if (isOpen()) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (!isOpen()) return;
+      if (event.key === 'Escape') {
+        closeMenu();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      // Contain focus within header + open panel; the browser already
+      // skips display:none elements, so only truly visible ones count.
+      const focusable = Array.from(
+        header.querySelectorAll<HTMLElement>('a[href], button'),
+      ).filter((el) => el.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Opening the menu on a small viewport, then resizing to desktop,
+    // must fully clean up: panel hidden, scroll restored, aria reset.
+    desktop.addEventListener('change', (event) => {
+      if (event.matches && isOpen()) {
+        closeMenu(false);
+      }
+    });
+  }
+
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const trigger = document.querySelector<HTMLButtonElement>('.menu-trigger');
+  const panel = document.getElementById('mobile-panel');
+  if (header && trigger && panel) {
+    enhanceNavigation(header, trigger, panel);
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: var(--color-bg);
+    border-bottom: var(--border-hairline);
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .header-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    max-width: var(--page-max);
+    margin-inline: auto;
+    padding-inline: var(--page-gutter);
+    min-height: 4.25rem; /* 68px — restrained editorial bar */
+    /* The panel is a CHILD of the header, so layering is decided inside
+       the header's own stacking context: the bar must sit at the header
+       layer to keep `JZ.` and `Close` above the open menu. */
+    position: relative;
+    z-index: var(--z-header);
+  }
+
+  /* Brand and actions live in the bar's stacking context one level above
+     the fixed panel (also a bar child), so `JZ.` and `Close` stay visible
+     and clickable over the open menu. */
+  .brand,
+  .header-actions {
+    position: relative;
+    z-index: var(--z-header);
+  }
+
+  .brand {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  /* ---- Language + trigger cluster ------------------------------------ */
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-left: auto;
+  }
+
+  .menu-trigger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.5em;
+    background: none;
+    border: 0;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .label-close {
+    display: none;
+  }
+
+  .menu-trigger[aria-expanded='true'] .label-open {
+    display: none;
+  }
+
+  .menu-trigger[aria-expanded='true'] .label-close {
+    display: inline;
+  }
+
+  /* On mobile the language switch lives inside the panel footer. */
+  .header-lang {
+    display: none;
+  }
+
+  /* ---- Mobile: default (no JS) = plain in-flow list ------------------- */
+
+  .mobile-panel {
+    background: var(--color-bg);
+  }
+
+  .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-sm) 0;
+  }
+
+  .nav-link {
+    display: inline-block;
+    padding-block: 0.6em;
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .nav-link.is-active {
+    color: var(--color-text);
+  }
+
+  .panel-footer {
+    padding-block: var(--space-sm);
+  }
+
+  /* ---- Mobile: JS enhanced = full-screen editorial composition -------- */
+
+  @media (max-width: 47.99em) {
+    /* Scoped to the mobile block so the trigger can never leak into the
+       desktop bar, where the inline nav makes it unnecessary. */
+    :global(html.js) .menu-trigger {
+      display: inline-flex;
+    }
+
+    :global(html.js) .mobile-panel {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-menu);
+      display: flex;
+      flex-direction: column;
+      padding-block-start: calc(4.25rem + env(safe-area-inset-top));
+      padding-inline: var(--page-gutter);
+      padding-block-end: max(var(--space-lg), env(safe-area-inset-bottom));
+      overflow-y: auto;
+      visibility: hidden;
+      opacity: 0;
+      transition:
+        opacity var(--duration-base) var(--ease-standard),
+        visibility 0s linear var(--duration-base);
+    }
+
+    :global(html.js) .mobile-panel[data-open] {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity var(--duration-base) var(--ease-standard);
+    }
+
+    :global(html.js) .site-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    :global(html.js) .nav-list {
+      display: grid;
+      align-content: center;
+      gap: var(--space-lg);
+      flex: 1;
+      padding-block: var(--space-xl) var(--space-lg);
+    }
+
+    :global(html.js) .panel-footer {
+      margin-top: auto;
+      padding-block: var(--space-md) 0;
+    }
+
+    .nav-number {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: var(--text-label);
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--color-text-faint);
+      margin-block-end: 0.4em;
+    }
+
+    :global(html[lang='zh-CN']) .nav-number {
+      letter-spacing: 0.2em;
+    }
+
+    .nav-text {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 1.2rem + 6.5vw, 4rem);
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      line-height: 1.02;
+      color: var(--color-text-muted);
+      transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    :global(html[lang='zh-CN']) .nav-text {
+      letter-spacing: 0.02em;
+      line-height: 1.12;
+    }
+
+    .nav-link {
+      padding-block: 0.25em;
+    }
+
+    .nav-link:hover .nav-text,
+    .nav-link:focus-visible .nav-text,
+    .nav-link.is-active .nav-text {
+      color: var(--color-text);
+    }
+
+    .nav-link.is-active .nav-number {
+      color: var(--color-accent);
+    }
+
+    /* Staggered entrance — gated by motion preference; the reduce side of
+       this media query leaves items permanently visible. */
+    @media (prefers-reduced-motion: no-preference) {
+      :global(html.js) .nav-list li {
+        opacity: 0;
+        transform: translateY(0.6rem);
+        transition:
+          opacity var(--duration-slow) var(--ease-editorial),
+          transform var(--duration-slow) var(--ease-editorial);
+      }
+
+      :global(html.js) .mobile-panel[data-open] .nav-list li {
+        opacity: 1;
+        transform: none;
+        transition-delay: calc(80ms + var(--i) * 45ms);
+      }
+    }
+  }
+
+  /* ---- Desktop (≥48em): quiet editorial bar ---------------------------- */
+
+  @media (min-width: 48em) {
+    .mobile-panel {
+      display: contents;
+    }
+
+    .panel-footer {
+      display: none;
+    }
+
+    .header-lang {
+      display: block;
+    }
+
+    .menu-trigger {
+      display: none;
+    }
+
+    .site-nav {
+      margin-left: auto;
+    }
+
+    .nav-list {
+      display: flex;
+      align-items: center;
+      gap: clamp(1.5rem, 3vw, 2.75rem);
+      padding: 0;
+    }
+
+    .nav-number {
+      display: none;
+    }
+
+    .nav-link {
+      display: inline-block;
+      padding-block: 0.6em;
+      border-bottom: 1px solid transparent;
+      font-family: var(--font-sans);
+      font-size: var(--text-label);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      text-decoration: none;
+      transition:
+        color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    :global(html[lang='zh-CN']) .nav-link {
+      text-transform: none;
+      letter-spacing: 0.14em;
+      font-weight: 500;
+    }
+
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      color: var(--color-text);
+      border-bottom-color: var(--color-border-strong);
+    }
+
+    .nav-link.is-active {
+      color: var(--color-text);
+      border-bottom-color: var(--color-text);
+    }
+
+    .nav-link[aria-current='page'] {
+      border-bottom-color: var(--color-accent);
+    }
+  }
+</style>

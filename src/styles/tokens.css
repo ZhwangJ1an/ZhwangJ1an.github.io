@@ -98,4 +98,10 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0, 0, 0.15, 1);
   --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Stacking --------------------------------------------------------------
+     Two layers, that is all: the menu panel sits under the header bar so
+     the brand and close control stay visible over the full-screen menu. */
+  --z-menu: 30;
+  --z-header: 40;
 }

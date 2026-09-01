@@ -1,0 +1,102 @@
+---
+/**
+ * 04 / Moments — quiet, personal, photographic. A small offset cluster
+ * with deliberate whitespace; the register drops from research-voice to
+ * personal-voice. No social UI of any kind.
+ */
+
+import type { Lang } from '../../i18n/config.ts';
+import { getHomeCopy } from '../../data/home.ts';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import MediaSlot from '../MediaSlot.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = getHomeCopy(lang);
+---
+
+<section class="moments section-lg">
+  <div class="container">
+    <p class="section-label t-label t-faint" data-reveal>{copy.momentsLabel}</p>
+
+    <div class="moments-head" data-reveal>
+      <h2 class="moments-heading">{copy.momentsHeading}</h2>
+      <p class="moments-support t-body t-muted">{copy.momentsSupport}</p>
+    </div>
+
+    <div class="moments-grid" data-reveal>
+      <div class="moment moment-a">
+        <MediaSlot ratio="4 / 5" label="MEDIA / 04" />
+      </div>
+      <div class="moment moment-b">
+        <MediaSlot ratio="3 / 2" label="MEDIA / 05" />
+      </div>
+    </div>
+
+    <p class="moments-cta" data-reveal>
+      <a class="link-arrow t-body" href={getRelativeLocaleUrl(lang, 'moments')}>{copy.momentsCta}</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .moments-head {
+    max-width: var(--text-max);
+    margin-block: var(--space-sm) var(--space-lg);
+  }
+
+  .moments-heading {
+    font-family: var(--font-display);
+    font-size: var(--text-display-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.08;
+  }
+
+  :global(html[lang='zh-CN']) .moments-heading {
+    letter-spacing: 0.02em;
+    line-height: 1.24;
+  }
+
+  .moments-support {
+    margin-block-start: var(--space-xs);
+  }
+
+  .moments-grid {
+    margin-block-end: var(--space-lg);
+  }
+
+  /* Mobile: block flow with percentage widths (percentages against auto
+     grid tracks would collapse cyclically). Offset cluster + whitespace. */
+  .moment-a {
+    width: 62%;
+  }
+
+  .moment-b {
+    width: 55%;
+    margin-left: auto;
+    margin-top: calc(-1 * var(--space-md));
+  }
+
+  @media (min-width: 56em) {
+    .moments-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: var(--grid-gap);
+    }
+
+    .moment-a {
+      grid-column: 2 / span 4;
+      max-width: none;
+    }
+
+    .moment-b {
+      grid-column: 7 / span 5;
+      max-width: none;
+      margin-top: var(--section-space-md); /* intentional offset */
+      margin-left: 0;
+    }
+  }
+</style>

@@ -1,0 +1,33 @@
+---
+/**
+ * Shared homepage implementation for both locales. Pages under / and /zh/
+ * are thin wrappers passing `lang` — one composition, per-language type
+ * calibration via :lang(zh-CN).
+ */
+
+import type { Lang } from '../../i18n/config.ts';
+import { getHomeCopy } from '../../data/home.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HomeHero from './HomeHero.astro';
+import HomeAbout from './HomeAbout.astro';
+import HomeInsights from './HomeInsights.astro';
+import HomeCreations from './HomeCreations.astro';
+import HomeMoments from './HomeMoments.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = getHomeCopy(lang);
+---
+
+<BaseLayout lang={lang} title={copy.title} description={copy.description}>
+  <main id="main-content">
+    <HomeHero lang={lang} />
+    <HomeAbout lang={lang} />
+    <HomeInsights lang={lang} />
+    <HomeCreations lang={lang} />
+    <HomeMoments lang={lang} />
+  </main>
+</BaseLayout>

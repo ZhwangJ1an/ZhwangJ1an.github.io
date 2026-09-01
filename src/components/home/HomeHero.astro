@@ -1,0 +1,193 @@
+---
+/**
+ * Homepage hero — the personal entrance.
+ *
+ * Mobile composes independently: media first, then the name as a vertical
+ * typographic block, identity, cue. Desktop (≥56em) becomes an asymmetric
+ * spread — display name left, tall media right. Same DOM, CSS Grid only.
+ */
+
+import type { Lang } from '../../i18n/config.ts';
+import { getHomeCopy } from '../../data/home.ts';
+import MediaSlot from '../MediaSlot.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = getHomeCopy(lang);
+const isZh = lang === 'zh';
+---
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-media" style={`--hero-delay-media: 0ms`}>
+        <MediaSlot ratio="4 / 3" label="MEDIA / 00 · PORTRAIT OR FLOW FIELD" class="hero-frame" />
+      </div>
+
+      <h1 class="hero-name">
+        {copy.heroNameLines.map((line, i) => (
+          <span class="hero-line" style={`--d: ${120 + i * 70}ms`}>{line}</span>
+        ))}
+      </h1>
+
+      <div class="hero-identity">
+        <p class="hero-roles" style="--d: 260ms">{copy.heroRoles}</p>
+        <p class="hero-quad" style="--d: 320ms">{copy.heroQuad.join(isZh ? ' · ' : ' ')}</p>
+      </div>
+    </div>
+
+    <a class="scroll-cue" href="#about" style="--d: 480ms">
+      <span class="t-label t-faint">{lang === 'zh' ? '滚动' : 'Scroll'}</span>
+      <span class="cue-arrow" aria-hidden="true">↓</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block-start: var(--space-md);
+    padding-block-end: var(--section-space-lg);
+  }
+
+  .hero-grid {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  /* Media first on mobile — the visual memory before the name. */
+  .hero-media {
+    order: -1;
+  }
+
+  .hero-frame {
+    border-radius: 0; /* full-bleed feel against the page frame */
+  }
+
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: var(--text-display-xl);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 0.94;
+    margin: 0;
+  }
+
+  :global(html[lang='zh-CN']) .hero-name {
+    letter-spacing: 0.02em;
+    line-height: 1.04;
+    /* Two glyphs carry the composition alone — scale up to hold the same
+       visual weight the eleven-letter Latin name has. */
+    font-size: calc(var(--text-display-xl) * 1.25);
+  }
+
+  .hero-line {
+    display: block;
+  }
+
+  .hero-identity {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .hero-roles {
+    font-family: var(--font-sans);
+    font-size: var(--text-body-lg);
+    color: var(--color-text);
+  }
+
+  .hero-quad {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    color: var(--color-text-faint);
+  }
+
+  .scroll-cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    margin-block-start: var(--space-lg);
+    text-decoration: none;
+  }
+
+  .scroll-cue .cue-arrow {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    transition: transform var(--duration-base) var(--ease-editorial);
+  }
+
+  .scroll-cue:hover .cue-arrow,
+  .scroll-cue:focus-visible .cue-arrow {
+    transform: translateY(0.2em);
+  }
+
+  /* ---- Desktop: asymmetric editorial spread ---------------------------- */
+
+  @media (min-width: 56em) {
+    .hero {
+      padding-block-start: var(--section-space-md);
+    }
+
+    .hero-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: var(--grid-gap);
+      align-items: end;
+    }
+
+    .hero-media {
+      order: 0;
+      grid-column: 8 / 13;
+      grid-row: 1 / 3;
+      align-self: stretch;
+    }
+
+    /* The tall right-hand column: portrait crop on desktop. */
+    .hero-media :global(.hero-frame) {
+      aspect-ratio: 4 / 5;
+      height: 100%;
+    }
+
+    .hero-name {
+      grid-column: 1 / 8;
+      grid-row: 1;
+      align-self: end;
+    }
+
+    .hero-identity {
+      grid-column: 1 / 8;
+      grid-row: 2;
+      padding-block-start: var(--space-md);
+    }
+
+    .scroll-cue {
+      margin-block-start: var(--section-space-md);
+    }
+  }
+
+  /* ---- Entrance: fast, CSS-only, gone before it can annoy --------------- */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-media,
+    .hero-line,
+    .hero-roles,
+    .hero-quad,
+    .scroll-cue {
+      animation: hero-rise 0.5s var(--ease-editorial) backwards;
+      animation-delay: var(--d, 0ms);
+    }
+
+    .scroll-cue {
+      --d: 480ms;
+    }
+  }
+
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.6rem);
+    }
+  }
+</style>

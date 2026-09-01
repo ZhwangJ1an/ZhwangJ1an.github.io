@@ -66,6 +66,12 @@
   padding-block: var(--section-space-xl);
 }
 
+/* Numbered section eyebrow (e.g. "01 / About") — shared by homepage and
+   future index pages; echoes the mobile navigation numbering. */
+.section-label {
+  margin-block-end: var(--space-md);
+}
+
 /* ---- Hairline structure ---------------------------------------------------------- */
 
 .rule {

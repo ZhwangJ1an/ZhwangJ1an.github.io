@@ -1,0 +1,63 @@
+---
+/**
+ * Global footer — restrained close. Only verified contact points appear;
+ * email / ORCID are added when real URLs exist. Localized via props.
+ */
+
+import type { Lang } from '../../i18n/config.ts';
+import LanguageSwitch from '../LanguageSwitch.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p class="footer-name">
+      {lang === 'zh' ? '庄简' : 'JIAN ZHUANG'}
+    </p>
+    <div class="footer-links">
+      <a class="link-label t-body-sm" href="https://github.com/ZhwangJ1an" rel="me">GitHub</a>
+      <LanguageSwitch lang={lang} />
+    </div>
+    <p class="footer-meta t-caption">© {year} Jian Zhuang</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: var(--border-hairline);
+    margin-block-start: var(--section-space-md);
+  }
+
+  .footer-inner {
+    padding-block: var(--space-lg);
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .footer-name {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  :global(html[lang='zh-CN']) .footer-name {
+    letter-spacing: 0.06em;
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .footer-meta {
+    margin-block-start: var(--space-xs);
+  }
+</style>

@@ -1,0 +1,100 @@
+---
+/**
+ * Media slot — one component for both states:
+ *
+ *  - With `src`: renders a real, responsive <img> (dimensions required —
+ *    no CLS; object-fit controlled; eager only for hero-critical media).
+ *  - Without `src`: renders a neutral editorial placeholder with the exact
+ *    final aspect ratio and a small development marker (`MEDIA / 01`),
+ *    so swapping in the real asset later touches props, never layout.
+ *
+ * The placeholder is decorative and carries no alt text / role, keeping
+ * the accessibility tree clean.
+ */
+
+interface Props {
+  /** CSS aspect-ratio, e.g. '3 / 2'. Used by both states. */
+  ratio?: string;
+  /** Real image source — omit for the development placeholder. */
+  src?: string;
+  /** Required whenever src is set. */
+  alt?: string;
+  width?: number;
+  height?: number;
+  /** object-position for real images, e.g. 'center 30%'. */
+  position?: string;
+  /** Development marker text, e.g. 'MEDIA / 01'. Placeholder state only. */
+  label?: string;
+  /** Hero-critical images load eager; everything else defaults to lazy. */
+  eager?: boolean;
+  class?: string;
+}
+
+const {
+  ratio = '3 / 2',
+  src,
+  alt,
+  width,
+  height,
+  position = 'center',
+  label = 'MEDIA',
+  eager = false,
+  class: className,
+} = Astro.props;
+---
+
+{
+  src ? (
+    <img
+      src={src}
+      alt={alt ?? ''}
+      width={width}
+      height={height}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding={eager ? 'sync' : 'async'}
+      fetchpriority={eager ? 'high' : undefined}
+      style={`aspect-ratio: ${ratio}; object-position: ${position};`}
+      class:list={['media-frame', className]}
+    />
+  ) : (
+    <div
+      class:list={['media-frame media-placeholder', className]}
+      style={`aspect-ratio: ${ratio};`}
+      aria-hidden="true"
+    >
+      <span class="media-marker">{label}</span>
+    </div>
+  )
+}
+
+<style>
+  .media-frame {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .media-frame.media-placeholder {
+    position: relative;
+    display: grid;
+    place-items: center;
+    background: var(--color-bg-subtle);
+    border: var(--border-hairline);
+  }
+
+  .media-marker {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--color-text-faint);
+  }
+
+  :global(html[lang='zh-CN']) .media-marker {
+    letter-spacing: 0.16em;
+  }
+</style>

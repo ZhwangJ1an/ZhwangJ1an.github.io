@@ -1,14 +1,18 @@
 ---
 /**
- * 04 / Moments — quiet, personal, photographic. A small offset cluster
- * with deliberate whitespace; the register drops from research-voice to
- * personal-voice. No social UI of any kind.
+ * 04 / Moments — quiet, personal, photographic. Three photographs in an
+ * offset editorial cluster with deliberate whitespace; the register drops
+ * from research-voice to personal-voice. No social UI of any kind, no
+ * invented captions — the images carry themselves.
  */
 
 import type { Lang } from '../../i18n/config.ts';
 import { getHomeCopy } from '../../data/home.ts';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MediaSlot from '../MediaSlot.astro';
+import momentA from '../../assets/home/moments-a.jpg';
+import momentB from '../../assets/home/moments-b.jpg';
+import momentC from '../../assets/home/moments-c.jpg';
 
 interface Props {
   lang: Lang;
@@ -29,10 +33,31 @@ const copy = getHomeCopy(lang);
 
     <div class="moments-grid" data-reveal>
       <div class="moment moment-a">
-        <MediaSlot ratio="4 / 5" label="MEDIA / 04" />
+        <MediaSlot
+          ratio="4 / 5"
+          src={momentA.src}
+          width={momentA.width}
+          height={momentA.height}
+          alt={copy.momentAlts[0]}
+        />
       </div>
       <div class="moment moment-b">
-        <MediaSlot ratio="3 / 2" label="MEDIA / 05" />
+        <MediaSlot
+          ratio="16 / 10"
+          src={momentB.src}
+          width={momentB.width}
+          height={momentB.height}
+          alt={copy.momentAlts[1]}
+        />
+      </div>
+      <div class="moment moment-c">
+        <MediaSlot
+          ratio="3 / 2"
+          src={momentC.src}
+          width={momentC.width}
+          height={momentC.height}
+          alt={copy.momentAlts[2]}
+        />
       </div>
     </div>
 
@@ -70,33 +95,55 @@ const copy = getHomeCopy(lang);
   }
 
   /* Mobile: block flow with percentage widths (percentages against auto
-     grid tracks would collapse cyclically). Offset cluster + whitespace. */
+     grid tracks would collapse cyclically). Three offset frames — left,
+     right, left — with deliberate whitespace between, not a feed. */
   .moment-a {
-    width: 62%;
+    width: 74%;
   }
 
   .moment-b {
-    width: 55%;
+    width: 84%;
     margin-left: auto;
-    margin-top: calc(-1 * var(--space-md));
+    margin-top: var(--space-md);
   }
 
+  .moment-c {
+    width: 66%;
+    margin-top: var(--space-md);
+  }
+
+  /* Desktop: quiet asymmetric spread on the editorial grid — tall portrait
+     left, wide landscape offset low right, medium landscape pulled back to
+     the center-left below. Rows stay open; the photos never fill the frame. */
   @media (min-width: 56em) {
     .moments-grid {
+      display: grid; /* block flow below; the spread is grid-composed */
       grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: var(--grid-gap);
     }
 
     .moment-a {
-      grid-column: 2 / span 4;
+      grid-column: 1 / span 4;
+      grid-row: 1;
+      width: auto;
       max-width: none;
+      align-self: start;
     }
 
     .moment-b {
-      grid-column: 7 / span 5;
+      grid-column: 6 / span 6;
+      grid-row: 1;
+      width: auto;
       max-width: none;
-      margin-top: var(--section-space-md); /* intentional offset */
-      margin-left: 0;
+      margin: var(--section-space-md) 0 0; /* intentional offset */
+    }
+
+    .moment-c {
+      grid-column: 3 / span 5;
+      grid-row: 2;
+      width: auto;
+      max-width: none;
+      margin: var(--space-lg) 0 0;
     }
   }
 </style>

@@ -10,6 +10,8 @@
 import type { Lang } from '../../i18n/config.ts';
 import { getHomeCopy } from '../../data/home.ts';
 import MediaSlot from '../MediaSlot.astro';
+import heroDesktop from '../../assets/home/hero-desktop.jpg';
+import heroMobile from '../../assets/home/hero-mobile.jpg';
 
 interface Props {
   lang: Lang;
@@ -24,7 +26,19 @@ const isZh = lang === 'zh';
   <div class="container">
     <div class="hero-grid">
       <div class="hero-media" style={`--hero-delay-media: 0ms`}>
-        <MediaSlot ratio="4 / 3" label="MEDIA / 00 · PORTRAIT OR FLOW FIELD" class="hero-frame" />
+        <MediaSlot
+          ratio="4 / 3"
+          alt={copy.heroAlt}
+          class="hero-frame"
+          eager
+          position="center bottom"
+          sources={[
+            // Desktop: 4/5 portrait crop — person right, lit peak upper-left.
+            { media: '(min-width: 56em)', src: heroDesktop.src, width: 864, height: 1080 },
+            // Mobile/tablet: 4/3 landscape — full peak with the person at right.
+            { src: heroMobile.src, width: 1440, height: 1080 },
+          ]}
+        />
       </div>
 
       <h1 class="hero-name">
@@ -144,10 +158,14 @@ const isZh = lang === 'zh';
       align-self: stretch;
     }
 
-    /* The tall right-hand column: portrait crop on desktop. */
+    /* The tall right-hand column: restore the 4/5 portrait ratio here —
+       the inline 4/3 belongs to the mobile composition, and the desktop
+       file is already the matching portrait crop (picture sources). With
+       the ratio driving the box, the media column sets the row height and
+       the name block aligns to its end. */
     .hero-media :global(.hero-frame) {
-      aspect-ratio: 4 / 5;
-      height: 100%;
+      aspect-ratio: 4 / 5 !important;
+      height: auto;
     }
 
     .hero-name {

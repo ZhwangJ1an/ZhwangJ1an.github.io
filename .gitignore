@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 # local QA artifacts
 qa/
+
+# raw personal assets - never commit
+个人主页 素材/
+
+# local editor workspace files
+*.code-workspace

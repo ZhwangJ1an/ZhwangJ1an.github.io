@@ -9,6 +9,8 @@ import type { Lang } from '../../i18n/config.ts';
 import { getHomeCopy } from '../../data/home.ts';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MediaSlot from '../MediaSlot.astro';
+import insightsFigure from '../../assets/home/insights-figure.webp';
+import coslideShot from '../../assets/home/coslide.png';
 
 interface Props {
   lang: Lang;
@@ -30,8 +32,30 @@ const copy = getHomeCopy(lang);
 
   <div class="container-wide">
     <a class="featured" data-reveal href={getRelativeLocaleUrl(lang, 'insights')}>
-      <div class="featured-media">
-        <MediaSlot ratio="3 / 2" label="MEDIA / 02 · RESEARCH FIGURE" />
+      <div class="featured-spread">
+        <div class="featured-media">
+          <MediaSlot
+            ratio="2745 / 1522"
+            src={insightsFigure.src}
+            width={insightsFigure.width}
+            height={insightsFigure.height}
+            alt={copy.insightsFigureAlt}
+          />
+        </div>
+        <div class="featured-side">
+          <MediaSlot
+            ratio="23 / 36"
+            src={coslideShot.src}
+            width={coslideShot.width}
+            height={coslideShot.height}
+            alt={copy.insightsSecondaryAlt}
+            position="top"
+          />
+          <p class="featured-side-caption">
+            <span class="t-label t-faint">{copy.featuredSecondary.kind}</span>
+            <span class="featured-side-title">{copy.featuredSecondary.title}</span>
+          </p>
+        </div>
       </div>
       <div class="featured-caption">
         <span class="t-label t-faint">{copy.featured.kind}</span>
@@ -97,6 +121,53 @@ const copy = getHomeCopy(lang);
     display: block;
     text-decoration: none;
     color: inherit;
+  }
+
+  /* Magazine spread: the wide figure plate with the CoSlide UI beside it.
+     The figure is displayed as rendered — the slot ratio matches the
+     asset exactly, so no axis, legend or annotation is ever cropped. */
+  .featured-spread {
+    display: grid;
+    gap: var(--grid-gap);
+    align-items: end;
+  }
+
+  .featured-side {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .featured-side-caption {
+    display: grid;
+    gap: var(--space-micro);
+    margin: 0;
+  }
+
+  .featured-side-title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 48em) {
+    .featured-spread {
+      grid-template-columns: minmax(0, 1fr) clamp(180px, 22vw, 300px);
+    }
+  }
+
+  /* Mobile: the portrait UI drops below the figure, right-aligned, at a
+     reduced measure — an offset cluster, not a second full-width block. */
+  .featured-side {
+    width: 58%;
+    margin-left: auto;
+  }
+
+  @media (min-width: 48em) {
+    .featured-side {
+      width: auto;
+      margin-left: 0;
+    }
   }
 
   .featured-media :global(.media-frame) {

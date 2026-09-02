@@ -1,23 +1,41 @@
 ---
 /**
- * Media slot — one component for both states:
+ * Media slot — one component for three states:
  *
- *  - With `src`: renders a real, responsive <img> (dimensions required —
- *    no CLS; object-fit controlled; eager only for hero-critical media).
- *  - Without `src`: renders a neutral editorial placeholder with the exact
- *    final aspect ratio and a small development marker (`MEDIA / 01`),
- *    so swapping in the real asset later touches props, never layout.
+ *  - `sources`: art-directed responsive media — renders a <picture> with
+ *    per-breakpoint sources (e.g. a different hero crop for mobile vs
+ *    desktop). The <img> carries the last (fallback) source's src and
+ *    dimensions, so each crop is served only where its breakpoint applies.
+ *  - `src` alone: a real, responsive <img> (dimensions required — no CLS;
+ *    object-fit controlled; eager only for hero-critical media).
+ *  - neither: a neutral editorial placeholder with the exact final aspect
+ *    ratio and a small development marker (`MEDIA / 01`), so swapping in
+ *    the real asset later touches props, never layout.
  *
  * The placeholder is decorative and carries no alt text / role, keeping
  * the accessibility tree clean.
  */
 
+interface MediaSource {
+  /** CSS media query this source applies to (omit = fallback). */
+  media?: string;
+  /** Image URL for this breakpoint. */
+  src: string;
+  /** Intrinsic dimensions of this source's file. */
+  width?: number;
+  height?: number;
+  /** Optional sizes hint, forwarded to the source element. */
+  sizes?: string;
+}
+
 interface Props {
-  /** CSS aspect-ratio, e.g. '3 / 2'. Used by both states. */
+  /** CSS aspect-ratio, e.g. '3 / 2'. Used by all states. */
   ratio?: string;
   /** Real image source — omit for the development placeholder. */
   src?: string;
-  /** Required whenever src is set. */
+  /** Art-directed breakpoint sources; renders a <picture>. */
+  sources?: MediaSource[];
+  /** Required whenever src/sources is set. */
   alt?: string;
   width?: number;
   height?: number;
@@ -33,6 +51,7 @@ interface Props {
 const {
   ratio = '3 / 2',
   src,
+  sources,
   alt,
   width,
   height,
@@ -41,21 +60,49 @@ const {
   eager = false,
   class: className,
 } = Astro.props;
+
+// The fallback <img> uses the last source (no media query) when
+// art-directing, otherwise the plain src prop.
+const fallback = sources?.[sources.length - 1];
+const imgSrc = fallback?.src ?? src;
+const imgWidth = fallback?.width ?? width;
+const imgHeight = fallback?.height ?? height;
 ---
 
 {
-  src ? (
-    <img
-      src={src}
-      alt={alt ?? ''}
-      width={width}
-      height={height}
-      loading={eager ? 'eager' : 'lazy'}
-      decoding={eager ? 'sync' : 'async'}
-      fetchpriority={eager ? 'high' : undefined}
-      style={`aspect-ratio: ${ratio}; object-position: ${position};`}
-      class:list={['media-frame', className]}
-    />
+  imgSrc ? (
+    sources?.length ? (
+      <picture>
+        {sources.map((s) =>
+          s.media ? (
+            <source media={s.media} srcset={s.src} sizes={s.sizes} width={s.width} height={s.height} />
+          ) : null,
+        )}
+        <img
+          src={imgSrc}
+          alt={alt ?? ''}
+          width={imgWidth}
+          height={imgHeight}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding={eager ? 'sync' : 'async'}
+          fetchpriority={eager ? 'high' : undefined}
+          style={`aspect-ratio: ${ratio}; object-position: ${position};`}
+          class:list={['media-frame', className]}
+        />
+      </picture>
+    ) : (
+      <img
+        src={src}
+        alt={alt ?? ''}
+        width={width}
+        height={height}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding={eager ? 'sync' : 'async'}
+        fetchpriority={eager ? 'high' : undefined}
+        style={`aspect-ratio: ${ratio}; object-position: ${position};`}
+        class:list={['media-frame', className]}
+      />
+    )
   ) : (
     <div
       class:list={['media-frame media-placeholder', className]}
@@ -71,6 +118,12 @@ const {
   .media-frame {
     display: block;
     width: 100%;
+    /* Neutralize the height presentational hint from the width/height
+       attributes — with both dimensions set, the inline aspect-ratio
+       would be ignored and the box could render at the file's intrinsic
+       pixel height. Height drivers stay in CSS (aspect-ratio here,
+       explicit stretch rules where a layout needs them). */
+    height: auto;
     object-fit: cover;
     border-radius: var(--radius-sm);
   }

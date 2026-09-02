@@ -8,17 +8,14 @@
    Durations and easings come from tokens.css — no ad-hoc numbers.
    ========================================================================== */
 
-/* One shared entrance pattern for later phases. Content is visible by
-   default (no-JS and reduced-motion safe); JS adds .is-revealed to run
-   the transition. Nothing here can hide content. */
-
-.reveal {
-  opacity: 1;
-  transform: none;
-}
+/* One shared entrance pattern. Content is visible by default: the hidden
+   pre-reveal state only applies once JS has synchronously marked <html>
+   with .js (in <head>, before first paint) — so there is no visible →
+   hide → reveal flash, and no-JS and reduced-motion users always see
+   full content. JS adds .is-revealed to run the transition. */
 
 @media (prefers-reduced-motion: no-preference) {
-  .reveal[data-reveal='pending'] {
+  html.js [data-reveal] {
     opacity: 0;
     transform: translateY(0.75rem);
     transition:
@@ -26,7 +23,7 @@
       transform var(--duration-slow) var(--ease-editorial);
   }
 
-  .reveal[data-reveal='pending'].is-revealed {
+  html.js [data-reveal].is-revealed {
     opacity: 1;
     transform: none;
   }

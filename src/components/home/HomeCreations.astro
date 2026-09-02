@@ -9,6 +9,7 @@ import type { Lang } from '../../i18n/config.ts';
 import { getHomeCopy } from '../../data/home.ts';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MediaSlot from '../MediaSlot.astro';
+import creationsShot from '../../assets/home/creations.webp';
 
 interface Props {
   lang: Lang;
@@ -30,7 +31,13 @@ const copy = getHomeCopy(lang);
 
   <div class="container-wide">
     <div class="creations-media" data-reveal>
-      <MediaSlot ratio="16 / 9" label="MEDIA / 03 · VIDEO OR DEMO" />
+      <MediaSlot
+        ratio="16 / 9"
+        src={creationsShot.src}
+        width={creationsShot.width}
+        height={creationsShot.height}
+        alt={copy.creationsMediaAlt}
+      />
     </div>
     <p class="creations-cta" data-reveal>
       <a class="link-arrow t-body" href={getRelativeLocaleUrl(lang, 'creations')}>{copy.creationsCta}</a>

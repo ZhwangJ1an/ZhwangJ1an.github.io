@@ -1,0 +1,36 @@
+---
+/**
+ * Language switch — a real <a href> present in the static HTML.
+ * Works without JavaScript, supports new tabs / middle click, and preserves
+ * the current logical path. Query strings cannot be known at build time in
+ * a static site, so a tiny script appends location.search as a progressive
+ * enhancement (the base href still works with JS disabled).
+ */
+
+import type { Lang } from '../i18n/config.ts';
+import { localizePath, t } from '../i18n/utils.ts';
+
+interface Props {
+  /** URL locale of the current page. */
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const target: Lang = lang === 'en' ? 'zh' : 'en';
+const href = localizePath(Astro.url.pathname, target);
+const label = t(target, target === 'en' ? 'lang.short.en' : 'lang.short.zh');
+const ariaLabel = t(lang, 'lang.switch');
+---
+
+<a href={href} hreflang={target} aria-label={ariaLabel} data-language-switch>{label}</a>
+
+<script>
+  // Preserve the current query string when switching languages
+  // (e.g. /insights/?type=paper → /zh/insights/?type=paper).
+  const search = window.location.search;
+  if (search) {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('a[data-language-switch]')) {
+      link.href += search;
+    }
+  }
+</script>

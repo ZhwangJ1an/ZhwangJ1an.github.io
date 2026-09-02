@@ -1,0 +1,153 @@
+---
+/**
+ * Media slot — one component for three states:
+ *
+ *  - `sources`: art-directed responsive media — renders a <picture> with
+ *    per-breakpoint sources (e.g. a different hero crop for mobile vs
+ *    desktop). The <img> carries the last (fallback) source's src and
+ *    dimensions, so each crop is served only where its breakpoint applies.
+ *  - `src` alone: a real, responsive <img> (dimensions required — no CLS;
+ *    object-fit controlled; eager only for hero-critical media).
+ *  - neither: a neutral editorial placeholder with the exact final aspect
+ *    ratio and a small development marker (`MEDIA / 01`), so swapping in
+ *    the real asset later touches props, never layout.
+ *
+ * The placeholder is decorative and carries no alt text / role, keeping
+ * the accessibility tree clean.
+ */
+
+interface MediaSource {
+  /** CSS media query this source applies to (omit = fallback). */
+  media?: string;
+  /** Image URL for this breakpoint. */
+  src: string;
+  /** Intrinsic dimensions of this source's file. */
+  width?: number;
+  height?: number;
+  /** Optional sizes hint, forwarded to the source element. */
+  sizes?: string;
+}
+
+interface Props {
+  /** CSS aspect-ratio, e.g. '3 / 2'. Used by all states. */
+  ratio?: string;
+  /** Real image source — omit for the development placeholder. */
+  src?: string;
+  /** Art-directed breakpoint sources; renders a <picture>. */
+  sources?: MediaSource[];
+  /** Required whenever src/sources is set. */
+  alt?: string;
+  width?: number;
+  height?: number;
+  /** object-position for real images, e.g. 'center 30%'. */
+  position?: string;
+  /** Development marker text, e.g. 'MEDIA / 01'. Placeholder state only. */
+  label?: string;
+  /** Hero-critical images load eager; everything else defaults to lazy. */
+  eager?: boolean;
+  class?: string;
+}
+
+const {
+  ratio = '3 / 2',
+  src,
+  sources,
+  alt,
+  width,
+  height,
+  position = 'center',
+  label = 'MEDIA',
+  eager = false,
+  class: className,
+} = Astro.props;
+
+// The fallback <img> uses the last source (no media query) when
+// art-directing, otherwise the plain src prop.
+const fallback = sources?.[sources.length - 1];
+const imgSrc = fallback?.src ?? src;
+const imgWidth = fallback?.width ?? width;
+const imgHeight = fallback?.height ?? height;
+---
+
+{
+  imgSrc ? (
+    sources?.length ? (
+      <picture>
+        {sources.map((s) =>
+          s.media ? (
+            <source media={s.media} srcset={s.src} sizes={s.sizes} width={s.width} height={s.height} />
+          ) : null,
+        )}
+        <img
+          src={imgSrc}
+          alt={alt ?? ''}
+          width={imgWidth}
+          height={imgHeight}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding={eager ? 'sync' : 'async'}
+          fetchpriority={eager ? 'high' : undefined}
+          style={`aspect-ratio: ${ratio}; object-position: ${position};`}
+          class:list={['media-frame', className]}
+        />
+      </picture>
+    ) : (
+      <img
+        src={src}
+        alt={alt ?? ''}
+        width={width}
+        height={height}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding={eager ? 'sync' : 'async'}
+        fetchpriority={eager ? 'high' : undefined}
+        style={`aspect-ratio: ${ratio}; object-position: ${position};`}
+        class:list={['media-frame', className]}
+      />
+    )
+  ) : (
+    <div
+      class:list={['media-frame media-placeholder', className]}
+      style={`aspect-ratio: ${ratio};`}
+      aria-hidden="true"
+    >
+      <span class="media-marker">{label}</span>
+    </div>
+  )
+}
+
+<style>
+  .media-frame {
+    display: block;
+    width: 100%;
+    /* Neutralize the height presentational hint from the width/height
+       attributes — with both dimensions set, the inline aspect-ratio
+       would be ignored and the box could render at the file's intrinsic
+       pixel height. Height drivers stay in CSS (aspect-ratio here,
+       explicit stretch rules where a layout needs them). */
+    height: auto;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .media-frame.media-placeholder {
+    position: relative;
+    display: grid;
+    place-items: center;
+    background: var(--color-bg-subtle);
+    border: var(--border-hairline);
+  }
+
+  .media-marker {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--color-text-faint);
+  }
+
+  :global(html[lang='zh-CN']) .media-marker {
+    letter-spacing: 0.16em;
+  }
+</style>

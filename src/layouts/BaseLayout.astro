@@ -1,0 +1,75 @@
+---
+import { htmlLang, type Lang } from '../i18n/config.ts';
+import { localizePath, t } from '../i18n/utils.ts';
+import Header from '../components/navigation/Header.astro';
+import Footer from '../components/site/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  /** URL locale of the page being rendered. */
+  lang: Lang;
+  title: string;
+  description?: string;
+}
+
+const { lang, title, description = 'Researcher · Engineer · Builder' } = Astro.props;
+
+// Every language version is self-canonical — the Chinese page never points
+// at the English URL and vice versa.
+const site = Astro.site ?? new URL('https://zhuangjian.space');
+const enHref = new URL(localizePath(Astro.url.pathname, 'en'), site).href;
+const zhHref = new URL(localizePath(Astro.url.pathname, 'zh'), site).href;
+const canonicalHref = lang === 'en' ? enHref : zhHref;
+---
+
+<!doctype html>
+<html lang={htmlLang[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalHref} />
+    <link rel="alternate" hreflang="en" href={enHref} />
+    <link rel="alternate" hreflang="zh-CN" href={zhHref} />
+    <link rel="alternate" hreflang="x-default" href={enHref} />
+    <!-- Marks JS availability before first paint: the mobile menu panel
+         only switches to the fixed overlay in the enhanced (js) state. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">{t(lang, 'skipToContent')}</a>
+    <Header lang={lang} />
+    <slot />
+    <Footer lang={lang} />
+
+    <script>
+      // Scroll-entrance enhancement (shared site-wide, one observer for
+      // every [data-reveal] element). The hidden pre-reveal state is keyed
+      // on html.js (set synchronously in <head>, before first paint), so
+      // elements never paint visible and then hide — no reveal flash.
+      // No-JS and reduced-motion users always see full content.
+      const targets = document.querySelectorAll('[data-reveal]');
+      if (targets.length > 0) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-revealed');
+                observer.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+        );
+        for (const el of targets) {
+          observer.observe(el);
+        }
+      }
+    </script>
+  </body>
+</html>

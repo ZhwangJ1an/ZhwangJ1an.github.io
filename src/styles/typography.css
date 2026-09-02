@@ -1,0 +1,185 @@
+/* ==========================================================================
+   typography.css — fluid type roles, Latin/CJK calibration, link
+   primitives. Roles are classes, not element defaults, so composition
+   stays explicit. Scale values come from tokens.css.
+   ========================================================================== */
+
+/* ---- Display ------------------------------------------------------------ */
+
+.t-display-xl,
+.t-display-lg,
+.t-display-md {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+}
+
+.t-display-xl { font-size: var(--text-display-xl); }
+.t-display-lg { font-size: var(--text-display-lg); }
+.t-display-md { font-size: var(--text-display-md); }
+
+/* ---- Headings ------------------------------------------------------------ */
+
+.t-heading-xl,
+.t-heading-lg,
+.t-heading-md {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+}
+
+.t-heading-xl { font-size: var(--text-heading-xl); }
+.t-heading-lg { font-size: var(--text-heading-lg); }
+.t-heading-md { font-size: var(--text-heading-md); }
+
+/* ---- Body ----------------------------------------------------------------- */
+
+.t-body-lg {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.t-body,
+.t-body-sm {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.t-body { font-size: var(--text-body); }
+.t-body-sm { font-size: var(--text-body-sm); }
+
+/* ---- Label / meta / caption ------------------------------------------------
+   Label: uppercase editorial eyebrow. Meta: dates, counts. Caption:
+   figure captions. All share the sans; label carries the tracking. */
+
+.t-label,
+.t-meta,
+.t-caption {
+  font-family: var(--font-sans);
+  line-height: 1.4;
+}
+
+.t-label {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.t-meta { font-size: var(--text-meta); font-weight: 400; }
+.t-caption { font-size: var(--text-caption); font-weight: 400; color: var(--color-text-faint); }
+
+.t-muted { color: var(--color-text-muted); }
+.t-faint { color: var(--color-text-faint); }
+
+/* ==========================================================================
+   Latin / CJK calibration.
+   html lang is "en" or "zh-CN" (see BaseLayout); :lang() lets the same
+   roles carry different metrics. Never letter-space CJK negatively.
+   ========================================================================== */
+
+:lang(zh-CN) .t-display-xl,
+:lang(zh-CN) .t-display-lg,
+:lang(zh-CN) .t-display-md {
+  letter-spacing: 0.02em;
+  line-height: 1.08;
+  font-weight: 600;
+}
+
+:lang(zh-CN) .t-heading-xl,
+:lang(zh-CN) .t-heading-lg,
+:lang(zh-CN) .t-heading-md {
+  letter-spacing: 0.01em;
+  line-height: 1.28;
+}
+
+:lang(zh-CN) .t-body-lg { line-height: 1.85; letter-spacing: 0.012em; }
+:lang(zh-CN) .t-body,
+:lang(zh-CN) .t-body-sm { line-height: 1.9; letter-spacing: 0.012em; }
+
+/* Chinese labels read better with wider, even tracking and no casing game. */
+:lang(zh-CN) .t-label {
+  letter-spacing: 0.16em;
+  text-transform: none;
+  font-weight: 500;
+}
+
+:lang(zh-CN) .t-caption { line-height: 1.7; }
+
+/* ==========================================================================
+   Link primitives — three kinds, no pill buttons.
+   ========================================================================== */
+
+/* Inline link: body-text link with a precise hairline underline. */
+.link-inline {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+}
+
+.link-inline:hover {
+  text-decoration-color: var(--color-accent);
+}
+
+/* Arrow link: quiet by default, the arrow moves on hover — the hover cue
+   is motion + color, never color alone. */
+.link-arrow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: var(--border-hairline);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.link-arrow::after {
+  content: '↗';
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  transition: transform var(--duration-base) var(--ease-editorial);
+}
+
+.link-arrow:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.link-arrow:hover::after {
+  transform: translate(0.15em, -0.15em);
+}
+
+/* Label link: small editorial navigation / index link. */
+.link-label {
+  display: inline-block;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.link-label:hover {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text);
+}
+
+/* Touch surfaces: every link primitive gets a comfortable hit area on
+   coarse pointers without changing the visual at mouse-grade sizes. */
+@media (pointer: coarse) {
+  .link-label,
+  .link-arrow {
+    padding-block: 0.55em;
+  }
+}

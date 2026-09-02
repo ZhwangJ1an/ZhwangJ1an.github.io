@@ -1,0 +1,219 @@
+---
+/**
+ * 02 / Insights — the primary content entrance. Image-dominant magazine
+ * spread: one oversized featured slot + hairline index rows. No cards.
+ * Items are development placeholders until the Phase 6 collection lands.
+ */
+
+import type { Lang } from '../../i18n/config.ts';
+import { getHomeCopy } from '../../data/home.ts';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import MediaSlot from '../MediaSlot.astro';
+import insightsFigure from '../../assets/home/insights-figure.webp';
+import coslideShot from '../../assets/home/coslide.png';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = getHomeCopy(lang);
+---
+
+<section class="insights section-lg">
+  <div class="container">
+    <p class="section-label t-label t-faint" data-reveal>{copy.insightsLabel}</p>
+
+    <div class="insights-head" data-reveal>
+      <h2 class="insights-heading">{copy.insightsHeading}</h2>
+      <p class="insights-support t-body t-muted">{copy.insightsSupport}</p>
+    </div>
+  </div>
+
+  <div class="container-wide">
+    <a class="featured" data-reveal href={getRelativeLocaleUrl(lang, 'insights')}>
+      <div class="featured-spread">
+        <div class="featured-media">
+          <MediaSlot
+            ratio="2745 / 1522"
+            src={insightsFigure.src}
+            width={insightsFigure.width}
+            height={insightsFigure.height}
+            alt={copy.insightsFigureAlt}
+          />
+        </div>
+        <div class="featured-side">
+          <MediaSlot
+            ratio="23 / 36"
+            src={coslideShot.src}
+            width={coslideShot.width}
+            height={coslideShot.height}
+            alt={copy.insightsSecondaryAlt}
+            position="top"
+          />
+          <p class="featured-side-caption">
+            <span class="t-label t-faint">{copy.featuredSecondary.kind}</span>
+            <span class="featured-side-title">{copy.featuredSecondary.title}</span>
+          </p>
+        </div>
+      </div>
+      <div class="featured-caption">
+        <span class="t-label t-faint">{copy.featured.kind}</span>
+        <span class="featured-title">{copy.featured.title}</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="container">
+    <ul role="list" class="insights-index" data-reveal>
+      {
+        copy.insightsRows.map((row) => (
+          <li>
+            <a class="insight-row" href={getRelativeLocaleUrl(lang, 'insights')}>
+              <span class="row-title t-body-lg">{row.title}</span>
+              <span class="t-label t-faint">{row.kind}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="insights-cta" data-reveal>
+      <a class="link-arrow t-body" href={getRelativeLocaleUrl(lang, 'insights')}>{copy.insightsCta}</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .insights-head {
+    margin-block: var(--space-sm) var(--space-lg);
+  }
+
+  .insights-heading {
+    font-family: var(--font-display);
+    font-size: var(--text-display-lg);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.02;
+    /* Display type breaks at word boundaries only — the global
+       break-word safety must never split words at this scale. */
+    overflow-wrap: normal;
+    max-width: 24ch;
+  }
+
+  .insights-support {
+    max-width: var(--text-max);
+    margin-block-start: var(--space-sm);
+  }
+
+  :global(html[lang='zh-CN']) .insights-heading {
+    /* CJK calibration: a size step down reads denser and wraps at
+       natural phrase boundaries instead of mid-thought. */
+    font-size: var(--text-display-md);
+    letter-spacing: 0.02em;
+    line-height: 1.22;
+  }
+
+  .insights-support {
+    margin-block-start: var(--space-sm);
+  }
+
+  .featured {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Magazine spread: the wide figure plate with the CoSlide UI beside it.
+     The figure is displayed as rendered — the slot ratio matches the
+     asset exactly, so no axis, legend or annotation is ever cropped. */
+  .featured-spread {
+    display: grid;
+    gap: var(--grid-gap);
+    align-items: end;
+  }
+
+  .featured-side {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .featured-side-caption {
+    display: grid;
+    gap: var(--space-micro);
+    margin: 0;
+  }
+
+  .featured-side-title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 48em) {
+    .featured-spread {
+      grid-template-columns: minmax(0, 1fr) clamp(180px, 22vw, 300px);
+    }
+  }
+
+  /* Mobile: the portrait UI drops below the figure, right-aligned, at a
+     reduced measure — an offset cluster, not a second full-width block. */
+  .featured-side {
+    width: 58%;
+    margin-left: auto;
+  }
+
+  @media (min-width: 48em) {
+    .featured-side {
+      width: auto;
+      margin-left: 0;
+    }
+  }
+
+  .featured-media :global(.media-frame) {
+    transition: transform var(--duration-slow) var(--ease-editorial);
+  }
+
+  .featured:hover .featured-media :global(.media-frame) {
+    transform: scale(1.015);
+  }
+
+  .featured-caption {
+    display: grid;
+    gap: var(--space-micro);
+    padding-block-start: var(--space-sm);
+  }
+
+  .featured-title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .insights-index {
+    margin-block-start: var(--space-lg);
+    border-top: var(--border-hairline);
+  }
+
+  .insight-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-block: var(--space-md);
+    border-bottom: var(--border-hairline);
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .insight-row:hover .row-title {
+    color: var(--color-accent);
+  }
+
+  .insights-cta {
+    margin-block-start: var(--space-lg);
+  }
+</style>

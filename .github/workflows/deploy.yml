@@ -1,0 +1,35 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Trigger on pushes to main (production deploys).
+  push:
+    branches: [main]
+  # Allow manual runs from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      # withastro/action@v6 installs dependencies, runs the Astro build,
+      # and uploads the Pages artifact in one step (out-dir: dist by default).
+      - name: Install, build, and upload site
+        uses: withastro/action@v6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

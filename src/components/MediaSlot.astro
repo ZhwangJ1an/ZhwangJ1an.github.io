@@ -1,19 +1,23 @@
 ---
 /**
- * Media slot — one component for three states:
+ * Site media primitive — the single entry point for content imagery.
  *
- *  - `sources`: art-directed responsive media — renders a <picture> with
- *    per-breakpoint sources (e.g. a different hero crop for mobile vs
- *    desktop). The <img> carries the last (fallback) source's src and
- *    dimensions, so each crop is served only where its breakpoint applies.
- *  - `src` alone: a real, responsive <img> (dimensions required — no CLS;
- *    object-fit controlled; eager only for hero-critical media).
- *  - neither: a neutral editorial placeholder with the exact final aspect
- *    ratio and a small development marker (`MEDIA / 01`), so swapping in
- *    the real asset later touches props, never layout.
+ * Every content image on the site renders through this component and is
+ * governed by the Global Locked Media Policy (docs/media-policy.md):
  *
- * The placeholder is decorative and carries no alt text / role, keeping
- * the accessibility tree clean.
+ *  - Build output is ALWAYS the locked state: a near-black editorial
+ *    surface with the exact final geometry (ratio + classes), carrying
+ *    the media descriptor in `data-media-config`.
+ *  - The shared controller in BaseLayout injects the real <picture>/<img>
+ *    only when the session is unlocked (JZ. ×5 within 3s), so a locked
+ *    session issues zero content-image requests.
+ *  - No-JS visitors permanently see the locked surface (accepted
+ *    fallback); text, navigation and links remain fully usable.
+ *  - Art direction is preserved: per-breakpoint sources, sizes,
+ *    object-position, ratio, eager/fetchpriority, alt, width/height.
+ *
+ * Frames without `src`/`sources` are development placeholders (marker
+ * label) and are not part of the locked-media system.
  */
 
 interface MediaSource {
@@ -33,7 +37,7 @@ interface Props {
   ratio?: string;
   /** Real image source — omit for the development placeholder. */
   src?: string;
-  /** Art-directed breakpoint sources; renders a <picture>. */
+  /** Art-directed breakpoint sources; resolved as a <picture>. */
   sources?: MediaSource[];
   /** Required whenever src/sources is set. */
   alt?: string;
@@ -43,7 +47,7 @@ interface Props {
   position?: string;
   /** Development marker text, e.g. 'MEDIA / 01'. Placeholder state only. */
   label?: string;
-  /** Hero-critical images load eager; everything else defaults to lazy. */
+  /** Hero-critical media hydrates eager; everything else defaults to lazy. */
   eager?: boolean;
   class?: string;
 }
@@ -61,48 +65,36 @@ const {
   class: className,
 } = Astro.props;
 
-// The fallback <img> uses the last source (no media query) when
+// The fallback image uses the last source (no media query) when
 // art-directing, otherwise the plain src prop.
 const fallback = sources?.[sources.length - 1];
 const imgSrc = fallback?.src ?? src;
 const imgWidth = fallback?.width ?? width;
 const imgHeight = fallback?.height ?? height;
+
+// Descriptor consumed by the runtime controller in BaseLayout. The real
+// img is created client-side only — never at build time — so a locked
+// session downloads nothing.
+const config = imgSrc
+  ? {
+      src: imgSrc,
+      width: imgWidth,
+      height: imgHeight,
+      alt: alt ?? '',
+      position,
+      eager,
+      sources: sources?.map((s) => ({ media: s.media, src: s.src, width: s.width, height: s.height })),
+    }
+  : null;
 ---
 
 {
-  imgSrc ? (
-    sources?.length ? (
-      <picture>
-        {sources.map((s) =>
-          s.media ? (
-            <source media={s.media} srcset={s.src} sizes={s.sizes} width={s.width} height={s.height} />
-          ) : null,
-        )}
-        <img
-          src={imgSrc}
-          alt={alt ?? ''}
-          width={imgWidth}
-          height={imgHeight}
-          loading={eager ? 'eager' : 'lazy'}
-          decoding={eager ? 'sync' : 'async'}
-          fetchpriority={eager ? 'high' : undefined}
-          style={`aspect-ratio: ${ratio}; object-position: ${position};`}
-          class:list={['media-frame', className]}
-        />
-      </picture>
-    ) : (
-      <img
-        src={src}
-        alt={alt ?? ''}
-        width={width}
-        height={height}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding={eager ? 'sync' : 'async'}
-        fetchpriority={eager ? 'high' : undefined}
-        style={`aspect-ratio: ${ratio}; object-position: ${position};`}
-        class:list={['media-frame', className]}
-      />
-    )
+  config ? (
+    <div
+      class:list={['site-media media-frame', className]}
+      style={`aspect-ratio: ${ratio};`}
+      data-media-config={JSON.stringify(config)}
+    />
   ) : (
     <div
       class:list={['media-frame media-placeholder', className]}
@@ -115,20 +107,7 @@ const imgHeight = fallback?.height ?? height;
 }
 
 <style>
-  .media-frame {
-    display: block;
-    width: 100%;
-    /* Neutralize the height presentational hint from the width/height
-       attributes — with both dimensions set, the inline aspect-ratio
-       would be ignored and the box could render at the file's intrinsic
-       pixel height. Height drivers stay in CSS (aspect-ratio here,
-       explicit stretch rules where a layout needs them). */
-    height: auto;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-  }
-
-  .media-frame.media-placeholder {
+  .media-placeholder {
     position: relative;
     display: grid;
     place-items: center;

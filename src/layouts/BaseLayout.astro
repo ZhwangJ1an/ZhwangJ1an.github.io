@@ -71,5 +71,141 @@ const canonicalHref = lang === 'en' ? enHref : zhHref;
         }
       }
     </script>
+
+    <script is:inline>
+      // Global locked-media controller — the single instance for the whole
+      // site (docs/media-policy.md). MediaSlot frames render only the
+      // locked surface at build time; this controller injects the real
+      // media elements when — and only when — the session is unlocked via
+      // the hidden gesture: 5 clicks/taps on the brand link within 3s,
+      // while already on the current-language home. Keyboard activation
+      // (event.detail === 0) keeps normal anchor navigation. One handler,
+      // one state key (sessionStorage), no framework, no dependencies.
+      (function () {
+        var KEY = 'siteMediaUnlocked';
+        var WINDOW_MS = 3000;
+        var TAPS = 5;
+
+        function isUnlocked() {
+          try {
+            return sessionStorage.getItem(KEY) === '1';
+          } catch (e) {
+            return false;
+          }
+        }
+
+        function writeState(value) {
+          try {
+            sessionStorage.setItem(KEY, value ? '1' : '0');
+          } catch (e) {
+            /* storage unavailable: state simply stays per-page */
+          }
+        }
+
+        var frames = Array.prototype.slice.call(document.querySelectorAll('[data-media-config]'));
+
+        function buildMedia(el) {
+          var cfg;
+          try {
+            cfg = JSON.parse(el.getAttribute('data-media-config'));
+          } catch (e) {
+            return;
+          }
+          var pic = document.createElement('picture');
+          (cfg.sources || []).forEach(function (s) {
+            if (!s.media) return;
+            var source = document.createElement('source');
+            source.media = s.media;
+            source.srcset = s.src;
+            pic.appendChild(source);
+          });
+          var img = document.createElement('img');
+          img.src = cfg.src;
+          img.alt = cfg.alt || '';
+          if (cfg.width) img.width = cfg.width;
+          if (cfg.height) img.height = cfg.height;
+          // Unlocked sessions explicitly asked for media: load every frame
+          // eagerly (laziness is meaningless when locked — nothing loads at
+          // all — and decode() would stall on offscreen lazy images).
+          img.loading = 'eager';
+          img.decoding = cfg.eager ? 'sync' : 'async';
+          if (cfg.eager && 'fetchPriority' in img) img.fetchPriority = 'high';
+          img.style.objectPosition = cfg.position || 'center';
+          img.addEventListener(
+            'error',
+            function () {
+              // Failed loads fall back to the locked surface — never the
+              // browser's broken-image UI.
+              img.remove();
+              delete el.dataset.hydrated;
+              el.classList.remove('is-media-ready');
+              console.warn('[site-media] load failed:', cfg.src);
+            },
+            { once: true },
+          );
+          pic.appendChild(img);
+          el.appendChild(pic);
+          var reveal = function () {
+            el.classList.add('is-media-ready');
+          };
+          if (img.complete && img.naturalWidth > 0) {
+            reveal();
+          } else {
+            img.addEventListener('load', reveal, { once: true });
+          }
+        }
+
+        function hydrateAll() {
+          frames.forEach(function (el) {
+            if (!el.dataset.hydrated) {
+              el.dataset.hydrated = '1';
+              buildMedia(el);
+            }
+          });
+        }
+
+        function dehydrateAll() {
+          frames.forEach(function (el) {
+            var pic = el.querySelector('picture');
+            if (pic) pic.remove();
+            delete el.dataset.hydrated;
+            el.classList.remove('is-media-ready');
+          });
+        }
+
+        function apply() {
+          if (isUnlocked()) {
+            hydrateAll();
+          } else {
+            dehydrateAll();
+          }
+        }
+
+        apply();
+
+        var brand = document.querySelector('.site-header .brand');
+        if (brand) {
+          var taps = 0;
+          var lastTapAt = 0;
+          brand.addEventListener('click', function (e) {
+            if (e.detail === 0) return; // keyboard activation: normal link
+            if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+            var target = (brand.getAttribute('href') || '/').replace(/\/+$/, '') || '/';
+            var here = location.pathname.replace(/\/+$/, '') || '/';
+            if (here !== target) return; // off home: a click navigates normally
+            e.preventDefault(); // on home: stay, so the sequence can complete
+            var now = Date.now();
+            if (now - lastTapAt > WINDOW_MS) taps = 0;
+            lastTapAt = now;
+            taps += 1;
+            if (taps >= TAPS) {
+              taps = 0;
+              writeState(!isUnlocked());
+              apply();
+            }
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -133,6 +133,44 @@
 .media-ratio-wide { aspect-ratio: 16 / 9; }
 .media-ratio-tall { aspect-ratio: 2 / 3; }
 
+/* ---- Site media (locked-media primitive) ------------------------------------------------
+   Every content image renders through MediaSlot as a .site-media frame.
+   Build output is always the LOCKED surface — a quiet near-black editorial
+   block carrying the media descriptor; the shared controller in
+   BaseLayout injects the real media elements only when the session is
+   unlocked (docs/media-policy.md). The frame keeps the exact final
+   geometry in both states, so locked → unlocked never shifts layout. */
+
+.site-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-inverse-bg);
+  border-radius: var(--radius-sm);
+}
+
+/* Inside inverse sections (e.g. Creations) the surface and the section
+   ground are both near-black — a hairline in the section's own border
+   token keeps the media block legible as structure. */
+.section-inverse .site-media {
+  border: 1px solid var(--color-border);
+}
+
+.site-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0; /* fades in only once decoded (is-media-ready) */
+}
+
+.site-media.is-media-ready img {
+  opacity: 1;
+  transition: opacity var(--duration-slow) var(--ease-editorial);
+}
+
 /* Full-bleed variant: escapes the container's gutters to span the page
    frame edge-to-edge. Deliberately NOT 100vw math — viewport units would
    introduce scrollbar-width overflow; bleeding within the page frame is

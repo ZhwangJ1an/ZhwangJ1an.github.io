@@ -8,10 +8,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/test-media-policy.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "test:i18n": "node scripts/test-i18n.ts",
+    "test:media-policy": "node scripts/test-media-policy.mjs",
     "astro": "astro"
   },
   "dependencies": {
